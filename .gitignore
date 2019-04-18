@@ -8,3 +8,5 @@ compile\.sh
 jsonparser\.exe
 
 sample/
+
+\.vscode/
