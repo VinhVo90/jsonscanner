@@ -12,14 +12,30 @@ public:
   JsonParser();
   ~JsonParser();
 
-  static Value* parse(const string &sFileContent);
-  static string parseAsBizFile(const string &sContent);
-  // void print() const;
+  Value* parse(const string &sFileContent);
+  string parseAsBizFile(const string &sContent);
 
 private:
-  static void doParse(Array<string> arrContent, int nIndex, Value *pContainer);
-  static string makeBaseString(const string &sContent);
-  static bool detectStringValue(string &sContent, int &nIndex);
+  void doParse(Array<string> arrContent, int nIndex, Value *pContainer);
+  string makeBaseString(const string &sContent);
+
+  bool detectGroup(string &sContent, int &nIndex, int &nOriginIndex);
+  bool detectGroupItem(string &sContent, int &nIndex, int &nOriginIndex);
+  bool endOfGroup(string &sContent, int &nIndex, int &nOriginIndex);
+  bool nextGroupItem(string &sContent, int &nIndex, int &nOriginIndex);
+
+  bool detectArray(string &sContent, int &nIndex, int &nOriginIndex);
+  bool endOfArray(string &sContent, int &nIndex, int &nOriginIndex);
+  bool detectArrayItem(string &sContent, int &nIndex, int &nOriginIndex);
+  bool nextArrayItem(string &sContent, int &nIndex, int &nOriginIndex);
+
+  bool detectSingle(string &sContent, int &nIndex, int &nOriginIndex);
+  bool detectStringValue(string &sContent, int &nIndex, int &nOriginIndex);
+  bool detectBoolValue(string &sContent, int &nIndex, int &nOriginIndex);
+  void detectNumberValue(string &sContent, int &nIndex, int &nOriginIndex);
+  
+  void skipWhiteSpace(const string &sContent, int &nIndex, int &nOriginIndex);
+  void printError(const string &sContent, int nIndex, int nOriginIndex);
 };
 
 #include "jsonparser.cpp"

@@ -12,7 +12,6 @@ JsonParser::JsonParser() {
 }
 
 JsonParser::~JsonParser() {
-
 }
 
 Value* JsonParser::parse(const string& sContent) {
@@ -30,92 +29,8 @@ Value* JsonParser::parse(const string& sContent) {
   return result;
 }
 
-string JsonParser::makeBaseString(const string& sContent) {
-  int nLen = sContent.length();
-  int nOriginIndex = 0, nTmp; // for error log
-  int nIndex = 0;
-  bool bFlag = true;
-  string sResult = sContent;
-
-  while(nIndex < nLen) {
-    cout << sResult[nIndex] << endl;
-    switch (sResult[nIndex]) {
-      case '{':
-        sResult.replace(nIndex, 1, "{\n");
-        nIndex += 2;
-        nOriginIndex += 1;
-        nLen += 1;
-        break;
-      case '}':
-        sResult.replace(nIndex, 1, "\n}");
-        nIndex += 2;
-        nOriginIndex += 1;
-        nLen += 1;
-        break;
-      case '[':
-        sResult.replace(nIndex, 1, "[\n");
-        nIndex += 2;
-        nOriginIndex += 1;
-        nLen += 1;
-        break;
-      case ']':
-        sResult.replace(nIndex, 1, "\n]");
-        nIndex += 2;
-        nOriginIndex += 1;
-        nLen += 1;
-        break;
-      case ',':
-        sResult.replace(nIndex, 1, "\n");
-        nIndex += 1;
-        nOriginIndex += 1;
-        break;
-      case '"':
-        nTmp = nIndex;
-        bFlag = detectStringValue(sResult, nIndex);
-        nOriginIndex = nOriginIndex + nIndex - nTmp;
-        if (!bFlag) {
-          // cout << "SyntaxError: Unexpected token " << sResult[nIndex] << " in JSON at position " << nOriginIndex << endl;
-          cout << "Incorrect JSON format.";
-          return "";
-        }
-        break;
-      case ' ':
-      case '\t':
-      case ':':
-      case '\n':
-      case '\r':
-        nIndex += 1;
-        nOriginIndex += 1;
-        break;
-      default:
-        // cout << "SyntaxError: Unexpected token " << sResult[nIndex] << " in JSON at position " << nOriginIndex << endl;
-        cout << "Incorrect JSON format.";
-        return "";
-        break;
-    }
-  }
-
-  return sResult;
-}
-
-bool JsonParser::detectStringValue(string& sContent, int &nIndex) {
-  int nLen = sContent.length() - 1;
-  nIndex += 1;
-
-  while (nIndex < nLen && '\n' != sContent[nIndex] && !('"' == sContent[nIndex] && '\\' != sContent[nIndex - 1])) {
-    nIndex += 1;
-  }
-
-  if ('\n' == sContent[nIndex]) return false;
-  if (nIndex == nLen) return false;
-
-  nIndex += 1;
-
-  return true;
-}
-
 void JsonParser::doParse(Array<string> arrContent, int nIndex, Value* pContainer) {
-  if (nIndex == arrContent.getCount() - 1) return;
+  if (nIndex == arrContent.getCount()) return;
   if (!pContainer) return;
 
   string sLine = arrContent[nIndex];
@@ -177,47 +92,441 @@ void JsonParser::doParse(Array<string> arrContent, int nIndex, Value* pContainer
 }
 
 string JsonParser::parseAsBizFile(const string& sContent) {
-  Value *root = parse(sContent);
+  GroupValue *pRoot = (GroupValue*)parse(sContent);
 
-  if (!root) return "";
+  if (!pRoot) return "";
 
+  // communication
+  GroupValue *pCommunication;
+  SingleValue *pSender, *pRecipient, *pReferenceId;
+
+  pCommunication = (GroupValue*)pRoot->getItemByName("communication");
+  if (!pCommunication) {
+    cout << "Cannot find communication group.";
+    return "";
+  }
+  
+  pSender = (SingleValue*)pCommunication->getItemByName("sender");
+  if (!pSender) {
+    cout << "Cannot find communication->sender attribute.";
+    return "";
+  }
+
+  pRecipient = (SingleValue*)pCommunication->getItemByName("recipient");
+  if (!pRecipient) {
+    cout << "Cannot find communication->recipient attribute.";
+    return "";
+  }
+
+  pReferenceId = (SingleValue*)pCommunication->getItemByName("referenceId");
+  if (!pReferenceId) {
+    cout << "Cannot find communication->referenceId attribute.";
+    return "";
+  }
+
+  // communication->message
+  GroupValue *pMessage;
+  SingleValue *pMessageName, *pMessageVersion, *pMessageRelease, *pMessageAgency;
+
+  pMessage = (GroupValue*)pCommunication->getItemByName("message");
+  if (!pMessage) {
+    cout << "Cannot find communication->message group.";
+    return "";
+  }
+
+  pMessageName = (SingleValue*)pMessage->getItemByName("name");
+  if (!pMessageName) {
+    cout << "Cannot find communication->message->name attribute.";
+    return "";
+  }
+
+  pMessageVersion = (SingleValue*)pMessage->getItemByName("version");
+  if (!pMessageVersion) {
+    cout << "Cannot find communication->message->version attribute.";
+    return "";
+  }
+
+  pMessageRelease = (SingleValue*)pMessage->getItemByName("release");
+  if (!pMessageRelease) {
+    cout << "Cannot find communication->message->release attribute.";
+    return "";
+  }
+
+  pMessageAgency = (SingleValue*)pMessage->getItemByName("agency");
+  if (!pMessageAgency) {
+    cout << "Cannot find communication->message->agency attribute.";
+    return "";
+  }
+
+  // communication->keys
+  ArrayValue* pKeys = (ArrayValue*)pCommunication->getItemByName("keys");
+  if (!pKeys) {
+    cout << "Cannot find communication->keys array.";
+    return "";
+  }
+
+  // payload
+  GroupValue* pPayload = (GroupValue*)((GroupValue*)pRoot)->getItemByName("payload");
+  if (!pPayload) {
+    cout << "Cannot find payload group.";
+    return "";
+  }
+
+  // Make output string
   string sResult = "DOC_BEGIN\n";
 
   // HEADER
   sResult.append("HEADER\n");
-  GroupValue *com = (GroupValue*)((GroupValue*) root)->getItemByName("communication");
-  sResult.append(com->getItemByName("sender")->toBizFileString());
-  sResult.append(com->getItemByName("recipient")->toBizFileString());
+
+  sResult.append(pSender->toBizFileString());
+  sResult.append(pRecipient->toBizFileString());
 
   // HEADER -> message
-  GroupValue* mess = (GroupValue*)com->getItemByName("message");
-  sResult.append("messageName:").append(((SingleValue*)mess->getItemByName("name"))->getValue()).append("\n");
-  sResult.append("messageVersion:").append(((SingleValue*)mess->getItemByName("version"))->getValue()).append("\n");
-  sResult.append("messageRelease:").append(((SingleValue*)mess->getItemByName("release"))->getValue()).append("\n");
-  sResult.append("messageAgency:").append(((SingleValue*)mess->getItemByName("agency"))->getValue()).append("\n");
+  sResult.append("messageName:").append(pMessageName->getValue()).append("\n");
+  sResult.append("messageVersion:").append(pMessageVersion->getValue()).append("\n");
+  sResult.append("messageRelease:").append(pMessageRelease->getValue()).append("\n");
+  sResult.append("messageAgency:").append(pMessageAgency->getValue()).append("\n");
 
-  sResult.append(com->getItemByName("referenceId")->toBizFileString());
+  sResult.append(pReferenceId->toBizFileString());
 
   // HEADER -> keys
-  ArrayValue* keys = (ArrayValue*)com->getItemByName("keys");
-  int nCount = keys->getItemCount();
+  int nCount = pKeys->getItemCount();
   for( int i = 0; i < nCount; i += 1) {
-    sResult.append("key").append(to_string(i + 1)).append(":").append(((SingleValue*)keys->getItemByIndex(i))->getValue()).append("\n");
+    sResult.append("key").append(to_string(i + 1)).append(":").append(((SingleValue*)pKeys->getItemByIndex(i))->getValue()).append("\n");
   }
 
   // payload
-  GroupValue* payload = (GroupValue*)((GroupValue*)root)->getItemByName("payload");
-  nCount = payload->getItemCount();
+  nCount = pPayload->getItemCount();
 
   for (int i = 0; i < nCount; i += 1) {
-    sResult.append(payload->getItemByIndex(i)->toBizFileString());
+    sResult.append(pPayload->getItemByIndex(i)->toBizFileString());
   }
 
   sResult.append("DOC_END");
 
-  delete root;
+  delete pRoot;
 
   return sResult;
+}
+
+string JsonParser::makeBaseString(const string& sContent) {
+  int nLen = sContent.length();
+  int nOriginIndex = 0; // for error log
+  int nIndex = 0;
+  string sResult = sContent;
+
+  skipWhiteSpace(sResult, nIndex, nOriginIndex);
+
+  switch (sResult[nIndex]) {
+    case '{':
+      sResult.replace(nIndex, 1, "{\n");
+      nIndex += 2;
+      nOriginIndex += 1;
+      if (!detectGroup(sResult, nIndex, nOriginIndex)) {
+        printError(sResult, nIndex, nOriginIndex);
+        return "";
+      }
+      break;
+    case '[':
+      sResult.replace(nIndex, 1, "[\n");
+      nIndex += 2;
+      nOriginIndex += 1;
+      if (!detectArray(sResult, nIndex, nOriginIndex)) {
+        printError(sResult, nIndex, nOriginIndex);
+        return "";
+      }
+      break;
+    default:
+      printError(sResult, nIndex, nOriginIndex);
+      return "";
+      break;
+  }
+
+  // check if any more data after end of JSON
+  // ex: {} aaa
+  skipWhiteSpace(sResult, nIndex, nOriginIndex);
+  if (nIndex < sResult.length()) {
+    printError(sResult, nIndex, nOriginIndex);
+
+    return "";
+  }
+
+  return sResult;
+}
+
+bool JsonParser::detectGroup(string &sContent, int &nIndex, int &nOriginIndex) {
+  while (!endOfGroup(sContent, nIndex, nOriginIndex)) {
+    if (!detectGroupItem(sContent, nIndex, nOriginIndex)) {
+      return false;
+    }
+    
+    if (!nextGroupItem(sContent, nIndex, nOriginIndex)) return false;
+  }
+
+  nIndex += 1;
+  nOriginIndex += 1;
+
+  return true;
+}
+
+bool JsonParser::detectGroupItem(string &sContent, int &nIndex, int &nOriginIndex) {
+  // Attribute name
+  if ('"' != sContent[nIndex]) return false;
+  nIndex += 1;
+  nOriginIndex += 1;
+  if (!detectStringValue(sContent, nIndex, nOriginIndex)) return false;
+
+  nIndex += 1;
+  nOriginIndex += 1;
+  skipWhiteSpace(sContent, nIndex, nOriginIndex);
+  if (':' != sContent[nIndex]) return false;
+
+  // Attribute value
+  nIndex += 1;
+  nOriginIndex += 1;
+  skipWhiteSpace(sContent, nIndex, nOriginIndex);
+  switch (sContent[nIndex]) {
+    case '{':
+      sContent.replace(nIndex, 1, "{\n");
+      nIndex += 2;
+      nOriginIndex += 1;
+      return detectGroup(sContent, nIndex, nOriginIndex);
+      break;
+    case '[':
+      sContent.replace(nIndex, 1, "[\n");
+      nIndex += 2;
+      nOriginIndex += 1;
+      return detectArray(sContent, nIndex, nOriginIndex);
+      break;
+    default:
+      return detectSingle(sContent, nIndex, nOriginIndex);
+      break;
+  }
+}
+
+bool JsonParser::endOfGroup(string &sContent, int &nIndex, int &nOriginIndex) {
+  skipWhiteSpace(sContent, nIndex, nOriginIndex);
+
+  if ('}' == sContent[nIndex]) {
+    sContent.replace(nIndex, 1, "\n}");
+    nIndex += 1;
+
+    return true;
+  }
+  
+  return false;
+}
+
+bool JsonParser::nextGroupItem(string &sContent, int &nIndex, int &nOriginIndex) {
+  skipWhiteSpace(sContent, nIndex, nOriginIndex);
+
+  if (',' == sContent[nIndex]) {
+    sContent.replace(nIndex, 1, "\n");
+    nIndex += 1;
+    nOriginIndex += 1;
+
+    return true;
+  }
+
+  if (!endOfGroup(sContent, nIndex, nOriginIndex)) return false;
+
+  return true;
+}
+
+bool JsonParser::detectArray(string &sContent, int &nIndex, int &nOriginIndex) {
+  while (!endOfArray(sContent, nIndex, nOriginIndex)) {
+    if (!detectArrayItem(sContent, nIndex, nOriginIndex)) {
+      return false;
+    }
+    
+    if (!nextArrayItem(sContent, nIndex, nOriginIndex)) return false;
+  }
+
+  nIndex += 1;
+  nOriginIndex += 1;
+
+  return true;
+}
+
+bool JsonParser::detectArrayItem(string &sContent, int &nIndex, int &nOriginIndex) {
+  switch (sContent[nIndex]) {
+    case '{':
+      sContent.replace(nIndex, 1, "{\n");
+      nIndex += 2;
+      nOriginIndex += 1;
+      return detectGroup(sContent, nIndex, nOriginIndex);
+      break;
+    case '[':
+      sContent.replace(nIndex, 1, "[\n");
+      nIndex += 2;
+      nOriginIndex += 1;
+      return detectArray(sContent, nIndex, nOriginIndex);
+      break;
+    default:
+      return detectSingle(sContent, nIndex, nOriginIndex);
+      break;
+  }
+}
+
+bool JsonParser::endOfArray(string &sContent, int &nIndex, int &nOriginIndex) {
+  skipWhiteSpace(sContent, nIndex, nOriginIndex);
+
+  if (']' == sContent[nIndex]) {
+    sContent.replace(nIndex, 1, "\n]");
+    nIndex += 1;
+
+    return true;
+  }
+  
+  return false;
+}
+
+bool JsonParser::nextArrayItem(string &sContent, int &nIndex, int &nOriginIndex) {
+  skipWhiteSpace(sContent, nIndex, nOriginIndex);
+
+  if (',' == sContent[nIndex]) {
+    sContent.replace(nIndex, 1, "\n");
+    nIndex += 1;
+    nOriginIndex += 1;
+
+    return true;
+  }
+
+  if (!endOfArray(sContent, nIndex, nOriginIndex)) return false;
+
+  return true;
+}
+
+bool JsonParser::detectSingle(string &sContent, int &nIndex, int &nOriginIndex) {
+  switch (sContent[nIndex]) {
+    case '"':
+      nIndex += 1;
+      nOriginIndex += 1;
+      if (!detectStringValue(sContent, nIndex, nOriginIndex)) return false;
+
+      nIndex += 1;
+      nOriginIndex += 1;
+      return true;
+      break;
+    case 't':
+    case 'f':
+      if (!detectBoolValue(sContent, nIndex, nOriginIndex)) return false;
+
+      nIndex += 1;
+      nOriginIndex += 1;
+      return true;
+      break;
+    case '0':
+    case '1':
+    case '2':
+    case '3':
+    case '4':
+    case '5':
+    case '6':
+    case '7':
+    case '8':
+    case '9':
+      detectNumberValue(sContent, nIndex, nOriginIndex);
+      return true;
+      break;
+    default:
+      return false;
+      break;
+  }
+
+  return false;
+}
+
+bool JsonParser::detectStringValue(string& sContent, int &nIndex, int &nOriginIndex) {
+  int nLen = sContent.length() - 1;
+
+  while (nIndex < nLen && '\n' != sContent[nIndex] && !('"' == sContent[nIndex] && '\\' != sContent[nIndex - 1])) {
+    nIndex += 1;
+    nOriginIndex += 1;
+  }
+
+  if ('\n' == sContent[nIndex]) return false;
+  if (nIndex == nLen) return false;
+
+  return true;
+}
+
+bool JsonParser::detectBoolValue(string &sContent, int &nIndex, int &nOriginIndex) {
+  if ('t' == sContent[nIndex]) {
+    nIndex += 1;
+    nOriginIndex += 1;
+    if ('r' != sContent[nIndex]) return false;
+
+    nIndex += 1;
+    nOriginIndex += 1;
+    if ('u' != sContent[nIndex]) return false;
+
+    nIndex += 1;
+    nOriginIndex += 1;
+    if ('e' != sContent[nIndex]) return false;
+  } else {
+    nIndex += 1;
+    nOriginIndex += 1;
+    if ('a' != sContent[nIndex]) return false;
+
+    nIndex += 1;
+    nOriginIndex += 1;
+    if ('l' != sContent[nIndex]) return false;
+
+    nIndex += 1;
+    nOriginIndex += 1;
+    if ('s' != sContent[nIndex]) return false;
+
+    nIndex += 1;
+    nOriginIndex += 1;
+    if ('e' != sContent[nIndex]) return false;
+  }
+
+  return true;
+}
+
+void JsonParser::detectNumberValue(string &sContent, int &nIndex, int &nOriginIndex) {
+  if ('0' == sContent[nIndex]) {
+    nIndex += 1;
+    nOriginIndex += 1;
+  } else {
+    while (isdigit(sContent[nIndex])) {
+      nIndex += 1;
+      nOriginIndex += 1;
+    }
+
+    if ('.' == sContent[nIndex]) {
+      nIndex += 1;
+      nOriginIndex += 1;
+
+      while (isdigit(sContent[nIndex])) {
+        nIndex += 1;
+        nOriginIndex += 1;
+      }
+    }
+  }
+}
+
+void JsonParser::printError(const string &sContent, int nIndex, int nOriginIndex) {
+  cout << "SyntaxError: Unexpected token " << sContent[nIndex] << " in JSON at position " << nOriginIndex << endl;
+}
+
+void JsonParser::skipWhiteSpace(const string &sContent, int &nIndex, int &nOriginIndex) {
+  int nLen = sContent.length();
+  while (nIndex < nLen) {
+    switch (sContent[nIndex]) {
+      case ' ':
+      case '\t':
+      case '\n':
+      case '\r':
+        nIndex += 1;
+        nOriginIndex += 1;
+        break;
+      default:
+        return;
+        break;
+    }
+  }
 }
 
 // void JsonParser::print() const {

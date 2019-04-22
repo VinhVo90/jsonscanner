@@ -37,4 +37,5 @@ void SingleValue::print(int nLevel) const {
 
   cout << m_sName << ":" << m_sData << endl;
 }
+
 #endif

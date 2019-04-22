@@ -16,10 +16,9 @@ string read_file(const string& file_path) {
     return "";
   }
 
-  while(!file.eof()){
+  while(!file.eof()) {
     getline(file, tmp);
     res += tmp + "\n";
-    // res += tmp;
   }
 
   res.replace(res.length() - 1, 1, "");
@@ -43,6 +42,7 @@ string replace_all(string str, const string& from, const string& to) {
     str.replace(start_pos, from.length(), to);
     start_pos += to.length(); // Handles case where 'to' is a substring of 'from'
   }
+  
   return str;
 }
 
