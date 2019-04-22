@@ -5,7 +5,8 @@
 #include <regex>
 using namespace std;
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[])
+{
 
   if (3 > argc) {
     cout << "[ Usage ] jsonparser json_file_path output_file_path\n\n";

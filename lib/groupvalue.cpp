@@ -3,18 +3,21 @@
 
 #include "groupvalue.h"
 
-GroupValue::GroupValue(const string &sName, Value *pContainer) : Value(pContainer, OBJECT_TYPE::GROUP, sName, 2) {
+GroupValue::GroupValue(const string &sName, Value *pContainer) : Value(pContainer, OBJECT_TYPE::GROUP, sName, 2)
+{
 }
 
-GroupValue::~GroupValue() {
+GroupValue::~GroupValue()
+{
   int nCount = m_arrData.getCount();
   for (int i = 0; i < nCount; i += 1) {
     delete m_arrData[i];
   }
 }
 
-void GroupValue::add(Value *pValue) {
-  // Priority: SINGL > GROUP > ARRAY
+void GroupValue::add(Value *pValue)
+{
+  // Priority: SINGLE > GROUP > ARRAY
   int nCount = m_arrData.getCount();
   if ( 0 == nCount) {
     m_arrData.insert(pValue);
@@ -34,7 +37,8 @@ void GroupValue::add(Value *pValue) {
   m_arrData.insertLast(pValue);
 }
 
-string GroupValue::toBizFileString() const {
+string GroupValue::toBizFileString() const
+{
   string s;
   int nCount = m_arrData.getCount();
   s.append(m_sName).append("\n");
@@ -46,7 +50,8 @@ string GroupValue::toBizFileString() const {
   return s;
 }
 
-Value* GroupValue::getItemByName(string sItemName) const {
+Value* GroupValue::getItemByName(string sItemName) const
+{
   int nCount = m_arrData.getCount();
 
   for( int i = 0; i < nCount; i += 1) {
@@ -56,11 +61,13 @@ Value* GroupValue::getItemByName(string sItemName) const {
   return NULL;
 }
 
-int GroupValue::getItemCount() const {
+int GroupValue::getItemCount() const
+{
   return m_arrData.getCount();
 }
 
-Value* GroupValue::getItemByIndex(int nIndex) const {
+Value* GroupValue::getItemByIndex(int nIndex) const
+{
   if (0 == m_arrData.getCount()) return NULL;
   if (0 > nIndex) return NULL;
   if (nIndex > m_arrData.getCount() - 1) return NULL;
@@ -68,7 +75,8 @@ Value* GroupValue::getItemByIndex(int nIndex) const {
   return m_arrData[nIndex];
 }
 
-void GroupValue::print(int nLevel) const {
+void GroupValue::print(int nLevel) const
+{
   for (int i = 0 ; i < nLevel; i += 1) {
     cout << "\t";
   }

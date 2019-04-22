@@ -8,13 +8,16 @@
 #include "value.h"
 #include "common.h"
 
-JsonParser::JsonParser() {
+JsonParser::JsonParser()
+{
 }
 
-JsonParser::~JsonParser() {
+JsonParser::~JsonParser()
+{
 }
 
-Value* JsonParser::parse(const string& sContent) {
+Value* JsonParser::parse(const string& sContent)
+{
   string sTmp = sContent;
 
   sTmp = makeBaseString(sTmp);
@@ -29,7 +32,8 @@ Value* JsonParser::parse(const string& sContent) {
   return result;
 }
 
-void JsonParser::doParse(Array<string> arrContent, int nIndex, Value* pContainer) {
+void JsonParser::doParse(Array<string> arrContent, int nIndex, Value* pContainer)
+{
   if (nIndex == arrContent.getCount()) return;
   if (!pContainer) return;
 
@@ -91,7 +95,8 @@ void JsonParser::doParse(Array<string> arrContent, int nIndex, Value* pContainer
   }
 }
 
-string JsonParser::parseAsBizFile(const string& sContent) {
+string JsonParser::parseAsBizFile(const string& sContent)
+{
   GroupValue *pRoot = (GroupValue*)parse(sContent);
 
   if (!pRoot) return "";
@@ -197,7 +202,6 @@ string JsonParser::parseAsBizFile(const string& sContent) {
 
   // payload
   nCount = pPayload->getItemCount();
-
   for (int i = 0; i < nCount; i += 1) {
     sResult.append(pPayload->getItemByIndex(i)->toBizFileString());
   }
@@ -209,7 +213,8 @@ string JsonParser::parseAsBizFile(const string& sContent) {
   return sResult;
 }
 
-string JsonParser::makeBaseString(const string& sContent) {
+string JsonParser::makeBaseString(const string& sContent)
+{
   int nLen = sContent.length();
   int nOriginIndex = 0; // for error log
   int nIndex = 0;
@@ -254,7 +259,8 @@ string JsonParser::makeBaseString(const string& sContent) {
   return sResult;
 }
 
-bool JsonParser::detectGroup(string &sContent, int &nIndex, int &nOriginIndex) {
+bool JsonParser::detectGroup(string &sContent, int &nIndex, int &nOriginIndex)
+{
   while (!endOfGroup(sContent, nIndex, nOriginIndex)) {
     if (!detectGroupItem(sContent, nIndex, nOriginIndex)) {
       return false;
@@ -269,7 +275,8 @@ bool JsonParser::detectGroup(string &sContent, int &nIndex, int &nOriginIndex) {
   return true;
 }
 
-bool JsonParser::detectGroupItem(string &sContent, int &nIndex, int &nOriginIndex) {
+bool JsonParser::detectGroupItem(string &sContent, int &nIndex, int &nOriginIndex)
+{
   // Attribute name
   if ('"' != sContent[nIndex]) return false;
   nIndex += 1;
@@ -304,7 +311,8 @@ bool JsonParser::detectGroupItem(string &sContent, int &nIndex, int &nOriginInde
   }
 }
 
-bool JsonParser::endOfGroup(string &sContent, int &nIndex, int &nOriginIndex) {
+bool JsonParser::endOfGroup(string &sContent, int &nIndex, int &nOriginIndex)
+{
   skipWhiteSpace(sContent, nIndex, nOriginIndex);
 
   if ('}' == sContent[nIndex]) {
@@ -333,7 +341,8 @@ bool JsonParser::nextGroupItem(string &sContent, int &nIndex, int &nOriginIndex)
   return true;
 }
 
-bool JsonParser::detectArray(string &sContent, int &nIndex, int &nOriginIndex) {
+bool JsonParser::detectArray(string &sContent, int &nIndex, int &nOriginIndex)
+{
   while (!endOfArray(sContent, nIndex, nOriginIndex)) {
     if (!detectArrayItem(sContent, nIndex, nOriginIndex)) {
       return false;
@@ -368,7 +377,8 @@ bool JsonParser::detectArrayItem(string &sContent, int &nIndex, int &nOriginInde
   }
 }
 
-bool JsonParser::endOfArray(string &sContent, int &nIndex, int &nOriginIndex) {
+bool JsonParser::endOfArray(string &sContent, int &nIndex, int &nOriginIndex)
+{
   skipWhiteSpace(sContent, nIndex, nOriginIndex);
 
   if (']' == sContent[nIndex]) {
@@ -381,7 +391,8 @@ bool JsonParser::endOfArray(string &sContent, int &nIndex, int &nOriginIndex) {
   return false;
 }
 
-bool JsonParser::nextArrayItem(string &sContent, int &nIndex, int &nOriginIndex) {
+bool JsonParser::nextArrayItem(string &sContent, int &nIndex, int &nOriginIndex)
+{
   skipWhiteSpace(sContent, nIndex, nOriginIndex);
 
   if (',' == sContent[nIndex]) {
@@ -397,7 +408,8 @@ bool JsonParser::nextArrayItem(string &sContent, int &nIndex, int &nOriginIndex)
   return true;
 }
 
-bool JsonParser::detectSingle(string &sContent, int &nIndex, int &nOriginIndex) {
+bool JsonParser::detectSingle(string &sContent, int &nIndex, int &nOriginIndex)
+{
   switch (sContent[nIndex]) {
     case '"':
       nIndex += 1;
@@ -437,7 +449,8 @@ bool JsonParser::detectSingle(string &sContent, int &nIndex, int &nOriginIndex) 
   return false;
 }
 
-bool JsonParser::detectStringValue(string& sContent, int &nIndex, int &nOriginIndex) {
+bool JsonParser::detectStringValue(string& sContent, int &nIndex, int &nOriginIndex)
+{
   int nLen = sContent.length() - 1;
 
   while (nIndex < nLen && '\n' != sContent[nIndex] && !('"' == sContent[nIndex] && '\\' != sContent[nIndex - 1])) {
@@ -451,7 +464,8 @@ bool JsonParser::detectStringValue(string& sContent, int &nIndex, int &nOriginIn
   return true;
 }
 
-bool JsonParser::detectBoolValue(string &sContent, int &nIndex, int &nOriginIndex) {
+bool JsonParser::detectBoolValue(string &sContent, int &nIndex, int &nOriginIndex)
+{
   if ('t' == sContent[nIndex]) {
     nIndex += 1;
     nOriginIndex += 1;
@@ -485,7 +499,8 @@ bool JsonParser::detectBoolValue(string &sContent, int &nIndex, int &nOriginInde
   return true;
 }
 
-void JsonParser::detectNumberValue(string &sContent, int &nIndex, int &nOriginIndex) {
+void JsonParser::detectNumberValue(string &sContent, int &nIndex, int &nOriginIndex)
+{
   if ('0' == sContent[nIndex]) {
     nIndex += 1;
     nOriginIndex += 1;
@@ -507,11 +522,13 @@ void JsonParser::detectNumberValue(string &sContent, int &nIndex, int &nOriginIn
   }
 }
 
-void JsonParser::printError(const string &sContent, int nIndex, int nOriginIndex) {
+void JsonParser::printError(const string &sContent, int nIndex, int nOriginIndex)
+{
   cout << "SyntaxError: Unexpected token " << sContent[nIndex] << " in JSON at position " << nOriginIndex << endl;
 }
 
-void JsonParser::skipWhiteSpace(const string &sContent, int &nIndex, int &nOriginIndex) {
+void JsonParser::skipWhiteSpace(const string &sContent, int &nIndex, int &nOriginIndex)
+{
   int nLen = sContent.length();
   while (nIndex < nLen) {
     switch (sContent[nIndex]) {

@@ -3,23 +3,27 @@
 
 #include "singlevalue.h"
 
-SingleValue::SingleValue(const string &sName, const string &sValue, Value *pContainer) : Value(pContainer, OBJECT_TYPE::SINGLE, sName, 3) {
+SingleValue::SingleValue(const string &sName, const string &sValue, Value *pContainer) : Value(pContainer, OBJECT_TYPE::SINGLE, sName, 3)
+{
   m_sData = sValue;
 }
 
-SingleValue::~SingleValue() {
-
+SingleValue::~SingleValue()
+{
 }
 
-void SingleValue::setValue(const string &sValue) {
+void SingleValue::setValue(const string &sValue)
+{
   m_sData = sValue;
 }
 
-const string& SingleValue::getValue() const {
+const string& SingleValue::getValue() const
+{
   return m_sData;
 }
 
-string SingleValue::toBizFileString() const {
+string SingleValue::toBizFileString() const
+{
   string s;
   if ("" != m_sName) {
     s.append(m_sName).append(":");
@@ -30,7 +34,8 @@ string SingleValue::toBizFileString() const {
   return s;
 }
 
-void SingleValue::print(int nLevel) const {
+void SingleValue::print(int nLevel) const
+{
   for (int i = 0; i < nLevel; i += 1) {
     cout << "\t";
   }

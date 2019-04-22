@@ -3,21 +3,25 @@
 
 #include "arrayvalue.h"
 
-ArrayValue::ArrayValue(const string &sName, Value *pContainer) : Value(pContainer, OBJECT_TYPE::ARRAY, sName, 1) {
+ArrayValue::ArrayValue(const string &sName, Value *pContainer) : Value(pContainer, OBJECT_TYPE::ARRAY, sName, 1)
+{
 }
 
-ArrayValue::~ArrayValue() {
+ArrayValue::~ArrayValue()
+{
   int nCount = m_arrData.getCount();
   for (int i = 0; i < nCount; i += 1) {
     delete m_arrData[i];
   }
 }
 
-void ArrayValue::add(Value *pValue) {
+void ArrayValue::add(Value *pValue)
+{
   m_arrData.insertLast(pValue);
 }
 
-string ArrayValue::toBizFileString() const {
+string ArrayValue::toBizFileString() const
+{
   int nCount = m_arrData.getCount();
   if (0 == nCount) return "";
 
@@ -37,11 +41,13 @@ string ArrayValue::toBizFileString() const {
   return s;
 }
 
-int ArrayValue::getItemCount() const {
+int ArrayValue::getItemCount() const
+{
   return m_arrData.getCount();
 }
 
-Value* ArrayValue::getItemByIndex(int nIndex) const {
+Value* ArrayValue::getItemByIndex(int nIndex) const
+{
   if (0 == m_arrData.getCount()) return NULL;
   if (0 > nIndex) return NULL;
   if (nIndex > m_arrData.getCount() - 1) return NULL;
@@ -49,7 +55,8 @@ Value* ArrayValue::getItemByIndex(int nIndex) const {
   return m_arrData[nIndex];
 }
 
-void ArrayValue::print(int nLevel) const {
+void ArrayValue::print(int nLevel) const
+{
   for (int i = 0 ; i < nLevel; i += 1) {
     cout << "\t";
   }

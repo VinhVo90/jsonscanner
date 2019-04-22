@@ -6,7 +6,8 @@
 #include "Array.h"
 using namespace std;
 
-string read_file(const string& file_path) {
+string read_file(const string& file_path)
+{
 	ifstream file;
   string tmp;
   string res;
@@ -26,7 +27,8 @@ string read_file(const string& file_path) {
 	return res;
 }
 
-void write_file(const string& file_path, const string& content) {
+void write_file(const string& file_path, const string& content)
+{
   FILE * pFile;
   pFile = fopen (file_path.c_str(),"w");
 
@@ -36,7 +38,8 @@ void write_file(const string& file_path, const string& content) {
   fclose (pFile);
 }
 
-string replace_all(string str, const string& from, const string& to) {
+string replace_all(string str, const string& from, const string& to)
+{
   size_t start_pos = 0;
   while (string::npos != (start_pos = str.find(from, start_pos))) {
     str.replace(start_pos, from.length(), to);
@@ -46,7 +49,8 @@ string replace_all(string str, const string& from, const string& to) {
   return str;
 }
 
-Array<string> split(string s, string delimiter) {
+Array<string> split(string s, string delimiter)
+{
   Array<string> res;
   int pos = 0;
   string token;
@@ -62,19 +66,22 @@ Array<string> split(string s, string delimiter) {
   return res;
 }
 
-void ltrim(string &s) {
+void ltrim(string &s)
+{
   s.erase(s.begin(), find_if(s.begin(), s.end(), [](int ch) {
     return !isspace(ch);
   }));
 }
 
-void rtrim(string &s) {
+void rtrim(string &s)
+{
   s.erase(find_if(s.rbegin(), s.rend(), [](int ch) {
     return !isspace(ch);
   }).base(), s.end());
 }
 
-string trim(string s) {
+string trim(string s)
+{
   ltrim(s);
   rtrim(s);
 
