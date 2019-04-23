@@ -64,14 +64,18 @@ void JsonParser::doParse(Array<string> arrContent, int nIndex, Value* pContainer
 
   if (OBJECT_TYPE::GROUP == pContainer->getType()) {
     // Group Items
-    int nFound = sLine.find_first_of(":");
-    string sAttrName = trim(sLine.substr(0, nFound));
+    int nIndex1 = 1;
+    int nDummy = 0;
+    detectStringValue(sLine, nIndex1, nDummy);
+    string sAttrName = trim(sLine.substr(1, nIndex1));
+
+    int nFound = sLine.find(':', nIndex1 + 1);
     string sAttrValue = trim(sLine.substr(nFound + 1));
 
-    if ('"' == sAttrName[0]) sAttrName.replace(0,1,"");
+    if ('"' == sAttrName[0]) sAttrName.replace(0, 1, "");
     if ('"' == sAttrName[sAttrName.length() - 1]) sAttrName.replace(sAttrName.length() - 1, 1, "");
 
-    if ('"' == sAttrValue[0]) sAttrValue.replace(0,1,"");
+    if ('"' == sAttrValue[0]) sAttrValue.replace(0, 1, "");
     if ('"' == sAttrValue[sAttrValue.length() - 1]) sAttrValue.replace(sAttrValue.length() - 1, 1, "");
 
     Value *item;
@@ -91,7 +95,7 @@ void JsonParser::doParse(Array<string> arrContent, int nIndex, Value* pContainer
   } else {
     // Array Items
     string sAttrValue = sLine;
-    if ('"' == sAttrValue[0]) sAttrValue.replace(0,1,"");
+    if ('"' == sAttrValue[0]) sAttrValue.replace(0, 1, "");
     if ('"' == sAttrValue[sAttrValue.length() - 1]) sAttrValue.replace(sAttrValue.length() - 1, 1, "");
     Value *item;
     if ("{" == sAttrValue) {
