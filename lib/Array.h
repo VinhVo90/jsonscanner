@@ -24,6 +24,7 @@ public:
 
 	bool insert(const T & x, int index = -1);
 	bool remove(const T & x);
+  bool remove(int index);
 	bool insertLast(const T& x);
 	T removeLast();
 

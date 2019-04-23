@@ -19,17 +19,28 @@ JsonParser::~JsonParser()
 Value* JsonParser::parse(const string& sContent)
 {
   string sTmp = sContent;
-
   sTmp = makeBaseString(sTmp);
   if ("" == sTmp) return NULL;
 
   Array<string> arrContent = split(sTmp, "\n");
 
-  GroupValue *result = new GroupValue("ROOT");
+  // Remove all empty lines
+  int nCount = arrContent.getCount();
+  for (int i = nCount - 1; i >= 0; i -= 1) {
+    if ("" == trim(arrContent[i])) {
+      arrContent.remove(i);
+    }
+  }
 
-  doParse(arrContent, 1, result);
+  Value *pResult;
+  if ("{" == arrContent[0])
+    pResult = new GroupValue("ROOT");
+  else 
+    pResult = new ArrayValue("ROOT");
 
-  return result;
+  doParse(arrContent, 1, pResult);
+
+  return pResult;
 }
 
 void JsonParser::doParse(Array<string> arrContent, int nIndex, Value* pContainer)
@@ -51,15 +62,15 @@ void JsonParser::doParse(Array<string> arrContent, int nIndex, Value* pContainer
     return;
   }
 
-  Array<string> attribute = split(sLine, ":");
-
-  if (attribute.getCount() > 1) {
+  if (OBJECT_TYPE::GROUP == pContainer->getType()) {
     // Group Items
-    string sAttrName = trim(attribute[0]);
+    int nFound = sLine.find_first_of(":");
+    string sAttrName = trim(sLine.substr(0, nFound));
+    string sAttrValue = trim(sLine.substr(nFound + 1));
+
     if ('"' == sAttrName[0]) sAttrName.replace(0,1,"");
     if ('"' == sAttrName[sAttrName.length() - 1]) sAttrName.replace(sAttrName.length() - 1, 1, "");
 
-    string sAttrValue = trim(attribute[1]);
     if ('"' == sAttrValue[0]) sAttrValue.replace(0,1,"");
     if ('"' == sAttrValue[sAttrValue.length() - 1]) sAttrValue.replace(sAttrValue.length() - 1, 1, "");
 
@@ -79,7 +90,7 @@ void JsonParser::doParse(Array<string> arrContent, int nIndex, Value* pContainer
     }
   } else {
     // Array Items
-    string sAttrValue = trim(attribute[0]);
+    string sAttrValue = sLine;
     if ('"' == sAttrValue[0]) sAttrValue.replace(0,1,"");
     if ('"' == sAttrValue[sAttrValue.length() - 1]) sAttrValue.replace(sAttrValue.length() - 1, 1, "");
     Value *item;
@@ -101,112 +112,11 @@ string JsonParser::parseAsBizFile(const string& sContent)
 
   if (!pRoot) return "";
 
-  // communication
-  GroupValue *pCommunication;
-  SingleValue *pSender, *pRecipient, *pReferenceId;
-
-  pCommunication = (GroupValue*)pRoot->getItemByName("communication");
-  if (!pCommunication) {
-    cout << "Cannot find communication group.";
-    return "";
+  string sResult;
+  int nCount = pRoot->getItemCount();
+  for(int i = 0; i < nCount; i += 1) {
+    sResult.append(pRoot->getItemByIndex(i)->toBizFileString());
   }
-  
-  pSender = (SingleValue*)pCommunication->getItemByName("sender");
-  if (!pSender) {
-    cout << "Cannot find communication->sender attribute.";
-    return "";
-  }
-
-  pRecipient = (SingleValue*)pCommunication->getItemByName("recipient");
-  if (!pRecipient) {
-    cout << "Cannot find communication->recipient attribute.";
-    return "";
-  }
-
-  pReferenceId = (SingleValue*)pCommunication->getItemByName("referenceId");
-  if (!pReferenceId) {
-    cout << "Cannot find communication->referenceId attribute.";
-    return "";
-  }
-
-  // communication->message
-  GroupValue *pMessage;
-  SingleValue *pMessageName, *pMessageVersion, *pMessageRelease, *pMessageAgency;
-
-  pMessage = (GroupValue*)pCommunication->getItemByName("message");
-  if (!pMessage) {
-    cout << "Cannot find communication->message group.";
-    return "";
-  }
-
-  pMessageName = (SingleValue*)pMessage->getItemByName("name");
-  if (!pMessageName) {
-    cout << "Cannot find communication->message->name attribute.";
-    return "";
-  }
-
-  pMessageVersion = (SingleValue*)pMessage->getItemByName("version");
-  if (!pMessageVersion) {
-    cout << "Cannot find communication->message->version attribute.";
-    return "";
-  }
-
-  pMessageRelease = (SingleValue*)pMessage->getItemByName("release");
-  if (!pMessageRelease) {
-    cout << "Cannot find communication->message->release attribute.";
-    return "";
-  }
-
-  pMessageAgency = (SingleValue*)pMessage->getItemByName("agency");
-  if (!pMessageAgency) {
-    cout << "Cannot find communication->message->agency attribute.";
-    return "";
-  }
-
-  // communication->keys
-  ArrayValue* pKeys = (ArrayValue*)pCommunication->getItemByName("keys");
-  if (!pKeys) {
-    cout << "Cannot find communication->keys array.";
-    return "";
-  }
-
-  // payload
-  GroupValue* pPayload = (GroupValue*)((GroupValue*)pRoot)->getItemByName("payload");
-  if (!pPayload) {
-    cout << "Cannot find payload group.";
-    return "";
-  }
-
-  // Make output string
-  string sResult = "DOC_BEGIN\n";
-
-  // HEADER
-  sResult.append("HEADER\n");
-
-  sResult.append(pSender->toBizFileString());
-  sResult.append(pRecipient->toBizFileString());
-
-  // HEADER -> message
-  sResult.append("messageName:").append(pMessageName->getValue()).append("\n");
-  sResult.append("messageVersion:").append(pMessageVersion->getValue()).append("\n");
-  sResult.append("messageRelease:").append(pMessageRelease->getValue()).append("\n");
-  sResult.append("messageAgency:").append(pMessageAgency->getValue()).append("\n");
-
-  sResult.append(pReferenceId->toBizFileString());
-
-  // HEADER -> keys
-  int nCount = pKeys->getItemCount();
-  for( int i = 0; i < nCount; i += 1) {
-    sResult.append("key").append(to_string(i + 1)).append(":").append(((SingleValue*)pKeys->getItemByIndex(i))->getValue()).append("\n");
-  }
-
-  // payload
-  nCount = pPayload->getItemCount();
-  for (int i = 0; i < nCount; i += 1) {
-    sResult.append(pPayload->getItemByIndex(i)->toBizFileString());
-  }
-
-  sResult.append("DOC_END");
 
   delete pRoot;
 
@@ -545,13 +455,5 @@ void JsonParser::skipWhiteSpace(const string &sContent, int &nIndex, int &nOrigi
     }
   }
 }
-
-// void JsonParser::print() const {
-//   // Value *root = parse();
-
-//   // root->print();
-
-//   // delete root;
-// }
 
 #endif

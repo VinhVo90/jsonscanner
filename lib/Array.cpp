@@ -75,7 +75,7 @@ bool Array<T>::insert(const T & x, int index)
 	bool succ = false;
 
 	if (!isFull() || growBy()) {
-		if (index < 0 || index > m_num) index = m_num;
+		if (0 > index || index > m_num) index = m_num;
 
 		for(int i = m_num; i > index; i -= 1) {
 			m_pData[i] = m_pData[i - 1];
@@ -121,6 +121,23 @@ bool Array<T>::remove(const T & x)
 {	
 	bool succ = false;
 	int index = indexOf(x);
+
+	if (index >= 0) {
+		for(int i = index; i < m_num - 1; i += 1) {
+			m_pData[i] = m_pData[i + 1];
+		}
+
+		m_num -= 1;
+		succ = true;
+	}
+	
+	return succ;
+}
+
+template <class T>
+bool Array<T>::remove(int index)
+{	
+	bool succ = false;
 
 	if (index >= 0) {
 		for(int i = index; i < m_num - 1; i += 1) {

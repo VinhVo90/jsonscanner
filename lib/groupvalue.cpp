@@ -3,7 +3,7 @@
 
 #include "groupvalue.h"
 
-GroupValue::GroupValue(const string &sName, Value *pContainer) : Value(pContainer, OBJECT_TYPE::GROUP, sName, 2)
+GroupValue::GroupValue(const string &sName, Value *pContainer) : Value(pContainer, OBJECT_TYPE::GROUP, sName, 1)
 {
 }
 

@@ -3,7 +3,7 @@
 
 #include "arrayvalue.h"
 
-ArrayValue::ArrayValue(const string &sName, Value *pContainer) : Value(pContainer, OBJECT_TYPE::ARRAY, sName, 1)
+ArrayValue::ArrayValue(const string &sName, Value *pContainer) : Value(pContainer, OBJECT_TYPE::ARRAY, sName, 2)
 {
 }
 
