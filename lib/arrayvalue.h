@@ -4,9 +4,7 @@
 #include "value.h"
 #include "const.h"
 #include <list>
-
 using namespace std;
-
 
 class ArrayValue : public Value {
   list<Value*> m_lstData;

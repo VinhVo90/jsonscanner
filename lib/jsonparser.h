@@ -3,14 +3,7 @@
 #include <iostream>
 #include "value.h"
 #include <list>
-
-
 using namespace std;
-
-typedef struct _parent {
-  string name;
-  int type;
-} Parent;
 
 class JsonParser {
   string m_sContent;
@@ -20,12 +13,10 @@ public:
   ~JsonParser();
 
   Value* parse(const string &sFileContent);
-  string parse2(const string &sFileContent);
   string parseAsBizFile(const string &sContent);
 
 private:
   Value* doParse(const string& baseString, Value *pContainer);
-  void doParse2(const string& baseString, Array<Parent>& arrParent, string& result);
   list<string> makeBaseString(const string &sContent);
 
   bool detectGroup(string &sContent, int &nIndex, int &nOriginIndex, list<string>& lstBaseString);

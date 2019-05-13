@@ -3,7 +3,6 @@
 #include <iostream>
 #include "value.h"
 #include "const.h"
-
 using namespace std;
 
 class SingleValue : public Value {

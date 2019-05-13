@@ -101,111 +101,6 @@ Value* JsonParser::doParse(const string& baseString, Value *pContainer)
   }
 }
 
-string JsonParser::parse2(const string& sContent)
-{
-  list<string> lstBaseString = makeBaseString(sContent);
-  if (0 == lstBaseString.size()) return "";
-
-  list<string>::iterator it = lstBaseString.begin();
-  Parent p;
-  p.name = "ROOT";
-  if ("{" == *it)
-    p.type = OBJECT_TYPE::GROUP;
-  else 
-    p.type = OBJECT_TYPE::ARRAY;
-
-  Array<Parent> arrParent;
-  arrParent.insert(p);
-  string sResult;
-  for ( ; it != lstBaseString.end(); ++it) {
-    doParse2(*it, arrParent, sResult);
-  }
-
-  return sResult;
-}
-
-void JsonParser::doParse2(const string& baseString, Array<Parent>& arrParent, string& result)
-{
-  string sLine = trim(baseString);
-
-  if ("" == sLine) {
-    return;
-  }
-
-  if ('}' == sLine[0] || ']' == sLine[0]) {
-    // continue parsing for parent of current parent
-    arrParent.removeLast();
-    return;
-  }
-
-  const Parent parent = arrParent[arrParent.getCount() -1];
-  if (OBJECT_TYPE::GROUP == parent.type) {
-    // Group Items
-
-    // Get item name
-    int nIndex1 = 1;
-    int nDummy = 0;
-    detectStringValue(sLine, nIndex1, nDummy);
-    string sAttrName = sLine.substr(1, nIndex1 - 1);
-
-    // Get item value
-    int nFound = sLine.find(':', nIndex1 + 1);
-    string sAttrValue = trim(sLine.substr(nFound + 1));
-
-    // Remove " from fist and last of sAttrValue
-    if ('"' == sAttrValue[0]) sAttrValue.replace(0, 1, "");
-    if ('"' == sAttrValue[sAttrValue.length() - 1]) sAttrValue.replace(sAttrValue.length() - 1, 1, "");
-
-    if ("{" == sAttrValue) {
-      // Item is Group
-      Parent p;
-      p.name = sAttrName;
-      p.type = OBJECT_TYPE::GROUP;
-      arrParent.insert(p);
-
-      result.append("\n").append(sAttrName);
-    } else if ("[" == sAttrValue) {
-      // Item is Array
-      Parent p;
-      p.name = sAttrName;
-      p.type = OBJECT_TYPE::ARRAY;
-      arrParent.insert(p);
-    } else {
-      // Item is single
-      result.append("\n").append(sAttrName).append(":").append(sAttrValue);
-    }
-  } else {
-    // Array Items
-    string sAttrValue = sLine;
-    if ('"' == sAttrValue[0]) sAttrValue.replace(0, 1, "");
-    if ('"' == sAttrValue[sAttrValue.length() - 1]) sAttrValue.replace(sAttrValue.length() - 1, 1, "");
-
-    if ("{" == sAttrValue) {
-      // Item is Group
-      Parent p;
-      p.name = parent.name + "Item";
-      p.type = OBJECT_TYPE::GROUP;
-      arrParent.insert(p);
-
-      result.append("\n").append(parent.name);
-      result.append("\n").append(parent.name).append("Item");
-    } else if ("[" == sAttrValue) {
-      // Item is Array
-      Parent p;
-      p.name = parent.name + "Item";
-      p.type = OBJECT_TYPE::ARRAY;
-      arrParent.insert(p);
-
-      result.append("\n").append(parent.name);
-      result.append("\n").append(parent.name).append("Item");
-    } else {
-      // Item is single
-      result.append("\n").append(parent.name);
-      result.append("\n").append(parent.name).append("Item").append(":").append(sAttrValue);
-    }
-  }
-}
-
 string JsonParser::parseAsBizFile(const string& sContent)
 {
   GroupValue *pRoot = (GroupValue*)parse(sContent);
@@ -230,10 +125,10 @@ list<string> JsonParser::makeBaseString(const string& sContent)
   string sResult = sContent;
   list<string> lstResult;
   list<string> lstError;
-  int nStartIndex = 0;
 
   skipWhiteSpace(sResult, nIndex, nOriginIndex);
 
+  int nStartIndex = nIndex;
   switch (sResult[nIndex]) {
     case '{':
       lstResult.push_back(sContent.substr(nStartIndex, nIndex - nStartIndex + 1));

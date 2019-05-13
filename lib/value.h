@@ -1,7 +1,6 @@
 #pragma once
 #include <iostream>
 #include "const.h"
-
 using namespace std;
 
 class Value {
