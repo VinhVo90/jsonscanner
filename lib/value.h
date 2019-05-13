@@ -1,6 +1,5 @@
 #pragma once
 #include <iostream>
-#include "Array.h"
 #include "const.h"
 
 using namespace std;

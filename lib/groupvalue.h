@@ -1,11 +1,11 @@
 #pragma once
 
-#include "Array.h"
 #include "value.h"
 #include "const.h"
+#include <list>
 
 class GroupValue : public Value {
-  Array<Value*> m_arrData;
+  list<Value*> m_lstData;
 public:
   GroupValue(const string &sName = "", Value *pContainer = NULL);
   virtual ~GroupValue();
@@ -15,6 +15,9 @@ public:
   Value* getItemByIndex(int nIndex) const;
   virtual string toBizFileString() const;
   virtual void print(int nLevel = 0) const;
+
+  template <typename cbFunc>  
+  void forEach(cbFunc func);
 };
 
 #include "groupvalue.cpp"

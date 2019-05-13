@@ -2,8 +2,15 @@
 
 #include <iostream>
 #include "value.h"
+#include <list>
+
 
 using namespace std;
+
+typedef struct _parent {
+  string name;
+  int type;
+} Parent;
 
 class JsonParser {
   string m_sContent;
@@ -13,23 +20,25 @@ public:
   ~JsonParser();
 
   Value* parse(const string &sFileContent);
+  string parse2(const string &sFileContent);
   string parseAsBizFile(const string &sContent);
 
 private:
-  void doParse(Array<string> arrContent, int nIndex, Value *pContainer);
-  string makeBaseString(const string &sContent);
+  Value* doParse(const string& baseString, Value *pContainer);
+  void doParse2(const string& baseString, Array<Parent>& arrParent, string& result);
+  list<string> makeBaseString(const string &sContent);
 
-  bool detectGroup(string &sContent, int &nIndex, int &nOriginIndex);
-  bool detectGroupItem(string &sContent, int &nIndex, int &nOriginIndex);
-  bool endOfGroup(string &sContent, int &nIndex, int &nOriginIndex);
-  bool nextGroupItem(string &sContent, int &nIndex, int &nOriginIndex);
+  bool detectGroup(string &sContent, int &nIndex, int &nOriginIndex, list<string>& lstBaseString);
+  bool detectGroupItem(string &sContent, int &nIndex, int &nOriginIndex, list<string>& lstBaseString);
+  bool endOfGroup(string &sContent, int &nIndex, int &nOriginIndex, list<string>& lstBaseString);
+  bool nextGroupItem(string &sContent, int &nIndex, int &nOriginIndex, list<string>& lstBaseString);
 
-  bool detectArray(string &sContent, int &nIndex, int &nOriginIndex);
-  bool endOfArray(string &sContent, int &nIndex, int &nOriginIndex);
-  bool detectArrayItem(string &sContent, int &nIndex, int &nOriginIndex);
-  bool nextArrayItem(string &sContent, int &nIndex, int &nOriginIndex);
+  bool detectArray(string &sContent, int &nIndex, int &nOriginIndex, list<string>& lstBaseString);
+  bool endOfArray(string &sContent, int &nIndex, int &nOriginIndex, list<string>& lstBaseString);
+  bool detectArrayItem(string &sContent, int &nIndex, int &nOriginIndex, list<string>& lstBaseString);
+  bool nextArrayItem(string &sContent, int &nIndex, int &nOriginIndex, list<string>& lstBaseString);
 
-  bool detectSingle(string &sContent, int &nIndex, int &nOriginIndex);
+  bool detectSingle(string &sContent, int &nIndex, int &nOriginIndex, list<string>& lstBaseString);
   bool detectStringValue(string &sContent, int &nIndex, int &nOriginIndex);
   bool detectBoolValue(string &sContent, int &nIndex, int &nOriginIndex);
   void detectNumberValue(string &sContent, int &nIndex, int &nOriginIndex);

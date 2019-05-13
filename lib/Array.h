@@ -36,4 +36,4 @@ private:
 	bool growBy();
 };
 
-#include "Array.cpp"
+#include "array.cpp"

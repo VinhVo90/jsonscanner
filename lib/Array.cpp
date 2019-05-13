@@ -1,10 +1,10 @@
 #ifndef _ARRAY_CPP
 #define _ARRAY_CPP
 
-#include "Array.h"
+#include "array.h"
 
 template <class T>
-const int Array<T>::DEF_SIZE = 16;
+const int Array<T>::DEF_SIZE = 1024;
 
 template <class T>
 Array<T>::Array(int size)

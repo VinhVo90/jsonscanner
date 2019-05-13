@@ -9,53 +9,50 @@ GroupValue::GroupValue(const string &sName, Value *pContainer) : Value(pContaine
 
 GroupValue::~GroupValue()
 {
-  int nCount = m_arrData.getCount();
-  for (int i = 0; i < nCount; i += 1) {
-    delete m_arrData[i];
+  list<Value*>::iterator it;
+  for (it = m_lstData.begin(); it != m_lstData.end(); ++it) {
+    delete (*it);
   }
 }
 
 void GroupValue::add(Value *pValue)
 {
   // Priority: SINGLE > GROUP > ARRAY
-  int nCount = m_arrData.getCount();
-  if ( 0 == nCount) {
-    m_arrData.insert(pValue);
+  if ( 0 == m_lstData.size()) {
+    m_lstData.push_back(pValue);
     return;
   }
 
-  int i = 0;
-  for (; i < nCount; i += 1) {
-    if (pValue->getPriority() > m_arrData[i]->getPriority()) break;
-  }
-  
-  if (i < nCount) {
-    m_arrData.insert(pValue, i);
-    return;
+  list<Value*>::iterator it = m_lstData.end();
+  it--;
+  for (; it != m_lstData.begin(); --it) {
+    if (pValue->getPriority() <= (*it)->getPriority()) {
+      break;
+    }
   }
 
-  m_arrData.insertLast(pValue);
+  it++;
+  m_lstData.insert(it, pValue);
 }
 
 string GroupValue::toBizFileString() const
 {
   string s;
-  int nCount = m_arrData.getCount();
   s.append(m_sName).append("\n");
 
-  for( int i = 0; i < nCount; i += 1) {
-    s.append(m_arrData[i]->toBizFileString());
+  list<Value*>::const_iterator it = m_lstData.begin();
+  for (; it != m_lstData.end(); ++it) {
+    s.append((*it)->toBizFileString());
   }
-
+  
   return s;
 }
 
 Value* GroupValue::getItemByName(string sItemName) const
 {
-  int nCount = m_arrData.getCount();
-
-  for( int i = 0; i < nCount; i += 1) {
-    if (m_arrData[i]->getName() == sItemName) return m_arrData[i];
+  list<Value*>::const_iterator it = m_lstData.begin();
+  for (; it != m_lstData.end(); ++it) {
+    if (sItemName == (*it)->getName()) return *it;
   }
 
   return NULL;
@@ -63,16 +60,7 @@ Value* GroupValue::getItemByName(string sItemName) const
 
 int GroupValue::getItemCount() const
 {
-  return m_arrData.getCount();
-}
-
-Value* GroupValue::getItemByIndex(int nIndex) const
-{
-  if (0 == m_arrData.getCount()) return NULL;
-  if (0 > nIndex) return NULL;
-  if (nIndex > m_arrData.getCount() - 1) return NULL;
-
-  return m_arrData[nIndex];
+  return m_lstData.size();
 }
 
 void GroupValue::print(int nLevel) const
@@ -82,9 +70,20 @@ void GroupValue::print(int nLevel) const
   }
   cout << m_sName << endl;
 
-  int nCount = m_arrData.getCount();
-  for (int i = 0 ; i < nCount; i += 1) {
-    m_arrData[i]->print(nLevel + 1);
+  list<Value*>::const_iterator it = m_lstData.begin();
+  for (; it != m_lstData.end(); ++it) {
+    (*it)->print(nLevel + 1);
   }
 }
+
+template <typename cbFunc>
+void GroupValue::forEach(cbFunc func)
+{
+  list<Value*>::iterator it;
+  int nIndex = 0;
+  for (it = m_lstData.begin(); it != m_lstData.end(); ++it) {
+    func(*it, nIndex);
+  }
+}
+
 #endif

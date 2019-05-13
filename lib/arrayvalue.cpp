@@ -9,32 +9,32 @@ ArrayValue::ArrayValue(const string &sName, Value *pContainer) : Value(pContaine
 
 ArrayValue::~ArrayValue()
 {
-  int nCount = m_arrData.getCount();
-  for (int i = 0; i < nCount; i += 1) {
-    delete m_arrData[i];
+  list<Value*>::iterator it;
+  for (it = m_lstData.begin(); it != m_lstData.end(); ++it) {
+    delete (*it);
   }
 }
 
 void ArrayValue::add(Value *pValue)
 {
-  m_arrData.insertLast(pValue);
+  m_lstData.push_back(pValue);
 }
 
 string ArrayValue::toBizFileString() const
 {
-  int nCount = m_arrData.getCount();
-  if (0 == nCount) return "";
+  if (0 == m_lstData.size()) return "";
 
+  list<Value*>::const_iterator it;
   string s;
-  if (OBJECT_TYPE::SINGLE == m_arrData[0]->getType()) {
-    for( int i = 0; i < nCount; i += 1) {
+  if (OBJECT_TYPE::SINGLE == (*(m_lstData.begin()))->getType()) {
+    for(it = m_lstData.begin(); it != m_lstData.end(); ++it) {
       s.append(m_sName).append("\n");
-      s.append(m_arrData[i]->toBizFileString());
+      s.append((*it)->toBizFileString());
     }
   } else {
     s.append(m_sName).append("\n");
-    for( int i = 0; i < nCount; i += 1) {
-      s.append(m_arrData[i]->toBizFileString());
+    for( it = m_lstData.begin(); it != m_lstData.end(); ++it) {
+      s.append((*it)->toBizFileString());
     }
   }
 
@@ -43,16 +43,7 @@ string ArrayValue::toBizFileString() const
 
 int ArrayValue::getItemCount() const
 {
-  return m_arrData.getCount();
-}
-
-Value* ArrayValue::getItemByIndex(int nIndex) const
-{
-  if (0 == m_arrData.getCount()) return NULL;
-  if (0 > nIndex) return NULL;
-  if (nIndex > m_arrData.getCount() - 1) return NULL;
-
-  return m_arrData[nIndex];
+  return m_lstData.size();
 }
 
 void ArrayValue::print(int nLevel) const
@@ -62,9 +53,19 @@ void ArrayValue::print(int nLevel) const
   }
   cout << m_sName << endl;
 
-  int nCount = m_arrData.getCount();
-  for (int i = 0 ; i < nCount; i += 1) {
-    m_arrData[i]->print(nLevel + 1);
+  list<Value*>::const_iterator it;
+  for (it = m_lstData.begin() ; it != m_lstData.end(); ++it) {
+    (*it)->print(nLevel + 1);
+  }
+}
+
+template <typename cbFunc>
+void ArrayValue::forEach(cbFunc func)
+{
+  list<Value*>::iterator it;
+  int nIndex = 0;
+  for (it = m_lstData.begin(); it != m_lstData.end(); ++it) {
+    func(*it, nIndex);
   }
 }
 #endif

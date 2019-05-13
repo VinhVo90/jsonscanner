@@ -3,7 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <algorithm>
-#include "Array.h"
+#include "array.h"
 using namespace std;
 
 string read_file(const string& file_path)
