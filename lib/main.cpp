@@ -15,9 +15,6 @@ int main(int argc, char* argv[])
   string sInputFilePath = argv[1];
   string sOutputFilePath = argv[2];
 
-  // string sInputFilePath = "D:\\Projects\\Ageta\\other_jobs\\20190410_json_parser\\app\\sample\\text2.txt";
-  // string sOutputFilePath = "D:\\Projects\\Ageta\\other_jobs\\20190410_json_parser\\app\\sample\\result.txt";
-
   string sFileContent = read_file(sInputFilePath);
   if ("" == sFileContent) {
     return 0;
