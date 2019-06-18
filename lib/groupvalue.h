@@ -7,14 +7,14 @@
 class GroupValue : public Value {
   list<Value*> m_lstData;
 public:
-  GroupValue(const string &sName = "", Value *pContainer = NULL);
+  GroupValue(const string &name = "", Value *container = NULL);
   virtual ~GroupValue();
-  void add(Value *pValue);
+  void add(Value *value);
   int getItemCount() const;
-  Value* getItemByName(string sItemName) const;
-  Value* getItemByIndex(int nIndex) const;
-  virtual string toBizFileString() const;
-  virtual void print(int nLevel = 0) const;
+  Value* getItemByName(string itemName) const;
+  Value* getItemByIndex(int index) const;
+  virtual string toBizFileString(int level = 0) const;
+  virtual void print(int level = 0) const;
 
   template <typename cbFunc>  
   void forEach(cbFunc func);

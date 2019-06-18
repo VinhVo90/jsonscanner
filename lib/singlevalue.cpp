@@ -3,18 +3,18 @@
 
 #include "singlevalue.h"
 
-SingleValue::SingleValue(const string &sName, const string &sValue, Value *pContainer) : Value(pContainer, OBJECT_TYPE::SINGLE, sName, 3)
+SingleValue::SingleValue(const string &name, const string &value, Value *container) : Value(container, OBJECT_TYPE::SINGLE, name, 3)
 {
-  m_sData = sValue;
+  m_sData = value;
 }
 
 SingleValue::~SingleValue()
 {
 }
 
-void SingleValue::setValue(const string &sValue)
+void SingleValue::setValue(const string &value)
 {
-  m_sData = sValue;
+  m_sData = value;
 }
 
 const string& SingleValue::getValue() const
@@ -22,9 +22,16 @@ const string& SingleValue::getValue() const
   return m_sData;
 }
 
-string SingleValue::toBizFileString() const
+string SingleValue::toBizFileString(int level) const
 {
+  string tabLevel;
+  for (int i = 0; i < level; i += 1) {
+    tabLevel.append("\t");
+  }
+
   string s;
+  s.append(tabLevel);
+  
   if ("" != m_sName) {
     s.append(m_sName).append(":");
   }
@@ -34,9 +41,9 @@ string SingleValue::toBizFileString() const
   return s;
 }
 
-void SingleValue::print(int nLevel) const
+void SingleValue::print(int level) const
 {
-  for (int i = 0; i < nLevel; i += 1) {
+  for (int i = 0; i < level; i += 1) {
     cout << "\t";
   }
 

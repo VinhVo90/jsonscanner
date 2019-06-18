@@ -8,12 +8,12 @@ using namespace std;
 class SingleValue : public Value {
   string m_sData;
 public:
-  SingleValue(const string &sName = "", const string &sValue = "", Value *pContainer = NULL);
+  SingleValue(const string &name = "", const string &value = "", Value *container = NULL);
   virtual ~SingleValue();
-  void setValue(const string &sValue);
+  void setValue(const string &value);
   const string& getValue() const;
-  virtual string toBizFileString() const;
-  virtual void print(int nLevel = 0) const;
+  virtual string toBizFileString(int level = 0) const;
+  virtual void print(int level = 0) const;
 };
 
 #include "singlevalue.cpp"

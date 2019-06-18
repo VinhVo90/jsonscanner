@@ -3,7 +3,7 @@
 
 #include "arrayvalue.h"
 
-ArrayValue::ArrayValue(const string &sName, Value *pContainer) : Value(pContainer, OBJECT_TYPE::ARRAY, sName, 2)
+ArrayValue::ArrayValue(const string &name, Value *container) : Value(container, OBJECT_TYPE::ARRAY, name, 2)
 {
 }
 
@@ -15,26 +15,31 @@ ArrayValue::~ArrayValue()
   }
 }
 
-void ArrayValue::add(Value *pValue)
+void ArrayValue::add(Value *value)
 {
-  m_lstData.push_back(pValue);
+  m_lstData.push_back(value);
 }
 
-string ArrayValue::toBizFileString() const
-{
+string ArrayValue::toBizFileString(int level) const
+{  
   if (0 == m_lstData.size()) return "";
+
+  string tabLevel;
+  for (int i = 0; i < level; i += 1) {
+    tabLevel.append("\t");
+  }
 
   list<Value*>::const_iterator it;
   string s;
   if (OBJECT_TYPE::SINGLE == (*(m_lstData.begin()))->getType()) {
     for(it = m_lstData.begin(); it != m_lstData.end(); ++it) {
-      s.append(m_sName).append("\n");
-      s.append((*it)->toBizFileString());
+      s.append(tabLevel).append(m_sName).append("\n");
+      s.append((*it)->toBizFileString(level + 1));
     }
   } else {
-    s.append(m_sName).append("\n");
+    s.append(tabLevel).append(m_sName).append("\n");
     for( it = m_lstData.begin(); it != m_lstData.end(); ++it) {
-      s.append((*it)->toBizFileString());
+      s.append((*it)->toBizFileString(level + 1));
     }
   }
 
@@ -46,16 +51,16 @@ int ArrayValue::getItemCount() const
   return m_lstData.size();
 }
 
-void ArrayValue::print(int nLevel) const
+void ArrayValue::print(int level) const
 {
-  for (int i = 0 ; i < nLevel; i += 1) {
+  for (int i = 0 ; i < level; i += 1) {
     cout << "\t";
   }
   cout << m_sName << endl;
 
   list<Value*>::const_iterator it;
   for (it = m_lstData.begin() ; it != m_lstData.end(); ++it) {
-    (*it)->print(nLevel + 1);
+    (*it)->print(level + 1);
   }
 }
 

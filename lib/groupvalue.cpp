@@ -3,7 +3,7 @@
 
 #include "groupvalue.h"
 
-GroupValue::GroupValue(const string &sName, Value *pContainer) : Value(pContainer, OBJECT_TYPE::GROUP, sName, 1)
+GroupValue::GroupValue(const string &name, Value *container) : Value(container, OBJECT_TYPE::GROUP, name, 1)
 {
 }
 
@@ -15,44 +15,50 @@ GroupValue::~GroupValue()
   }
 }
 
-void GroupValue::add(Value *pValue)
+void GroupValue::add(Value *value)
 {
   // Priority: SINGLE > GROUP > ARRAY
   if ( 0 == m_lstData.size()) {
-    m_lstData.push_back(pValue);
+    m_lstData.push_back(value);
     return;
   }
 
   list<Value*>::iterator it = m_lstData.end();
   it--;
   for (; it != m_lstData.begin(); --it) {
-    if (pValue->getPriority() <= (*it)->getPriority()) {
+    if (value->getPriority() <= (*it)->getPriority()) {
       break;
     }
   }
 
   it++;
-  m_lstData.insert(it, pValue);
+  m_lstData.insert(it, value);
 }
 
-string GroupValue::toBizFileString() const
+string GroupValue::toBizFileString(int level) const
 {
-  string s;
-  s.append(m_sName).append("\n");
+  if (0 == m_lstData.size()) return "";
 
+  string tabLevel;
+  for (int i = 0; i < level; i += 1) {
+    tabLevel.append("\t");
+  }
+
+  string s;
+  s.append(tabLevel).append(m_sName).append("\n");
   list<Value*>::const_iterator it = m_lstData.begin();
   for (; it != m_lstData.end(); ++it) {
-    s.append((*it)->toBizFileString());
+    s.append((*it)->toBizFileString(level + 1));
   }
   
   return s;
 }
 
-Value* GroupValue::getItemByName(string sItemName) const
+Value* GroupValue::getItemByName(string itemName) const
 {
   list<Value*>::const_iterator it = m_lstData.begin();
   for (; it != m_lstData.end(); ++it) {
-    if (sItemName == (*it)->getName()) return *it;
+    if (itemName == (*it)->getName()) return *it;
   }
 
   return NULL;
@@ -63,16 +69,16 @@ int GroupValue::getItemCount() const
   return m_lstData.size();
 }
 
-void GroupValue::print(int nLevel) const
+void GroupValue::print(int level) const
 {
-  for (int i = 0 ; i < nLevel; i += 1) {
+  for (int i = 0 ; i < level; i += 1) {
     cout << "\t";
   }
   cout << m_sName << endl;
 
   list<Value*>::const_iterator it = m_lstData.begin();
   for (; it != m_lstData.end(); ++it) {
-    (*it)->print(nLevel + 1);
+    (*it)->print(level + 1);
   }
 }
 

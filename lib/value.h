@@ -10,16 +10,15 @@ protected:
   Value *m_pContainer;
   int m_nPriority;
 public:
-  Value(Value *pContainer = NULL, int nType = -1, const string &sName = "", int nPriority = 1);
+  Value(Value *container = NULL, int type = -1, const string &name = "", int priority = 1);
   virtual ~Value();
   int getType() const;
   const string& getName() const;
-  void setName(const string &sType);
   Value* getContainer() const;
-  void setContainer(Value *pContainer);
+  void setContainer(Value *container);
   int getPriority() const;
-  virtual string toBizFileString() const = 0;
-  virtual void print(int nLevel = 0) const = 0;
+  virtual string toBizFileString(int level = 0) const = 0;
+  virtual void print(int level = 0) const = 0;
 };
 
 #include "value.cpp"

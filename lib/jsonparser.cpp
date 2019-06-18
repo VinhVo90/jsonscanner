@@ -8,8 +8,6 @@
 #include "value.h"
 #include "common.h"
 
-
-
 JsonParser::JsonParser()
 {
 }
@@ -18,9 +16,13 @@ JsonParser::~JsonParser()
 {
 }
 
-Value* JsonParser::parse(const string& sContent)
+string JsonParser::getErrorMessage(void) {
+	return m_sErrorMessage;
+}
+
+Value* JsonParser::parse(const string& content)
 {
-  list<string> lstBaseString = makeBaseString(sContent);
+  list<string> lstBaseString = makeBaseString(content);
   if (0 == lstBaseString.size()) return NULL;
 
   list<string>::iterator it = lstBaseString.begin();
@@ -39,19 +41,19 @@ Value* JsonParser::parse(const string& sContent)
   return pResult;
 }
 
-Value* JsonParser::doParse(const string& baseString, Value *pContainer)
+Value* JsonParser::doParse(const string& baseString, Value *container)
 {
   string sLine = trim(baseString);
 
   if ("" == sLine) {
-    return pContainer;
+    return container;
   }
 
   if ('}' == sLine[0] || ']' == sLine[0]) {
-    return pContainer->getContainer();
+    return container->getContainer();
   }
 
-  if (OBJECT_TYPE::GROUP == pContainer->getType()) {
+  if (OBJECT_TYPE::GROUP == container->getType()) {
     // Group Items
     int nIndex1 = 1;
     detectStringValue(sLine, nIndex1);
@@ -68,19 +70,19 @@ Value* JsonParser::doParse(const string& baseString, Value *pContainer)
 
     Value *item;
     if ("{" == sAttrValue) {
-      item = new GroupValue(sAttrName, pContainer);
-      ((GroupValue*)pContainer)->add(item);
+      item = new GroupValue(sAttrName, container);
+      ((GroupValue*)container)->add(item);
       return item;
 
     } else if ("[" == sAttrValue) {
-      item = new ArrayValue(sAttrName, pContainer);
-      ((GroupValue*)pContainer)->add(item);
+      item = new ArrayValue(sAttrName, container);
+      ((GroupValue*)container)->add(item);
       return item;
 
     } else {
-      item = new SingleValue(sAttrName, sAttrValue, pContainer);
-      ((GroupValue*)pContainer)->add(item);
-      return pContainer;
+      item = new SingleValue(sAttrName, sAttrValue, container);
+      ((GroupValue*)container)->add(item);
+      return container;
     }
   } else {
     // Array Items
@@ -89,20 +91,20 @@ Value* JsonParser::doParse(const string& baseString, Value *pContainer)
     if ('"' == sAttrValue[sAttrValue.length() - 1]) sAttrValue.replace(sAttrValue.length() - 1, 1, "");
     Value *item;
     if ("{" == sAttrValue) {
-      item = new GroupValue(pContainer->getName() + "Item", pContainer);
-      ((ArrayValue*)pContainer)->add(item);
+      item = new GroupValue(container->getName() + "Item", container);
+      ((ArrayValue*)container)->add(item);
       return item;
     } else {
-      item = new SingleValue(pContainer->getName() + "Item", sAttrValue, pContainer);
-      ((ArrayValue*)pContainer)->add(item);
-      return pContainer;
+      item = new SingleValue(container->getName() + "Item", sAttrValue, container);
+      ((ArrayValue*)container)->add(item);
+      return container;
     }
   }
 }
 
-string JsonParser::parseAsBizFile(const string& sContent)
+string JsonParser::parseAsBizFile(const string& content)
 {
-  GroupValue *pRoot = (GroupValue*)parse(sContent);
+  GroupValue *pRoot = (GroupValue*)parse(content);
 
   if (!pRoot) return "";
 
@@ -116,11 +118,11 @@ string JsonParser::parseAsBizFile(const string& sContent)
   return sResult;
 }
 
-list<string> JsonParser::makeBaseString(const string& sContent)
+list<string> JsonParser::makeBaseString(const string& content)
 {
-  int nLen = sContent.length();
+  int nLen = content.length();
   int nIndex = 0;
-  string sResult = sContent;
+  string sResult = content;
   list<string> lstResult;
   list<string> lstError;
 
@@ -129,7 +131,7 @@ list<string> JsonParser::makeBaseString(const string& sContent)
   int nStartIndex = nIndex;
   switch (sResult[nIndex]) {
     case '{':
-      lstResult.push_back(sContent.substr(nStartIndex, nIndex - nStartIndex + 1));
+      lstResult.push_back(content.substr(nStartIndex, nIndex - nStartIndex + 1));
       nIndex += 1;
       if (!detectGroup(sResult, nIndex, lstResult)) {
         printError(sResult, nIndex);
@@ -137,7 +139,7 @@ list<string> JsonParser::makeBaseString(const string& sContent)
       }
       break;
     case '[':
-      lstResult.push_back(sContent.substr(nStartIndex, nIndex - nStartIndex + 1));
+      lstResult.push_back(content.substr(nStartIndex, nIndex - nStartIndex + 1));
       nIndex += 1;
       if (!detectArray(sResult, nIndex, lstResult)) {
         printError(sResult, nIndex);
@@ -162,69 +164,69 @@ list<string> JsonParser::makeBaseString(const string& sContent)
   return lstResult;
 }
 
-bool JsonParser::detectGroup(string &sContent, int &nIndex, list<string>& lstBaseString)
+bool JsonParser::detectGroup(string &content, int &index, list<string>& baseString)
 {
   while (true) {
-    skipWhiteSpace(sContent, nIndex);
+    skipWhiteSpace(content, index);
 
-    if (!detectGroupItem(sContent, nIndex, lstBaseString)) {
+    if (!detectGroupItem(content, index, baseString)) {
       return false;
     }
 
-    if (!nextGroupItem(sContent, nIndex, lstBaseString)) {
+    if (!nextGroupItem(content, index, baseString)) {
       // If there is no anymore item and there is no end of group charactor '}' => incorrect JSON format
-      if (!endOfGroup(sContent, nIndex, lstBaseString)) return false;
+      if (!endOfGroup(content, index, baseString)) return false;
       
       break;
     } 
   }
 
-  nIndex += 1;
+  index += 1;
 
   return true;
 }
 
-bool JsonParser::detectGroupItem(string &sContent, int &nIndex, list<string>& lstBaseString)
+bool JsonParser::detectGroupItem(string &content, int &index, list<string>& baseString)
 {
-  int nStartIndex = nIndex;
+  int nStartIndex = index;
   // Attribute name
-  if ('"' != sContent[nIndex]) return false;
-  nIndex += 1;
-  if (!detectStringValue(sContent, nIndex)) return false;
+  if ('"' != content[index]) return false;
+  index += 1;
+  if (!detectStringValue(content, index)) return false;
 
-  nIndex += 1;
-  skipWhiteSpace(sContent, nIndex);
-  if (':' != sContent[nIndex]) return false;
+  index += 1;
+  skipWhiteSpace(content, index);
+  if (':' != content[index]) return false;
 
   // Attribute value
-  nIndex += 1;
-  skipWhiteSpace(sContent, nIndex);
-  switch (sContent[nIndex]) {
+  index += 1;
+  skipWhiteSpace(content, index);
+  switch (content[index]) {
     case '{':
-      lstBaseString.push_back(sContent.substr(nStartIndex, nIndex - nStartIndex + 1));
-      nIndex += 1;
-      return detectGroup(sContent, nIndex, lstBaseString);
+      baseString.push_back(content.substr(nStartIndex, index - nStartIndex + 1));
+      index += 1;
+      return detectGroup(content, index, baseString);
       break;
     case '[':
-      lstBaseString.push_back(sContent.substr(nStartIndex, nIndex - nStartIndex + 1));
-      nIndex += 1;
-      return detectArray(sContent, nIndex, lstBaseString);
+      baseString.push_back(content.substr(nStartIndex, index - nStartIndex + 1));
+      index += 1;
+      return detectArray(content, index, baseString);
       break;
     default:
-      bool b = detectSingle(sContent, nIndex, lstBaseString);
-      lstBaseString.push_back(sContent.substr(nStartIndex, nIndex - nStartIndex));
+      bool b = detectSingle(content, index, baseString);
+      baseString.push_back(content.substr(nStartIndex, index - nStartIndex));
       return b;
       break;
   }
 }
 
-bool JsonParser::endOfGroup(string &sContent, int &nIndex, list<string>& lstBaseString)
+bool JsonParser::endOfGroup(string &content, int &index, list<string>& baseString)
 {
-  int nStartIndex = nIndex;
-  skipWhiteSpace(sContent, nIndex);
+  int nStartIndex = index;
+  skipWhiteSpace(content, index);
 
-  if ('}' == sContent[nIndex]) {
-    lstBaseString.push_back(sContent.substr(nStartIndex, nIndex - nStartIndex + 1));
+  if ('}' == content[index]) {
+    baseString.push_back(content.substr(nStartIndex, index - nStartIndex + 1));
 
     return true;
   }
@@ -232,11 +234,11 @@ bool JsonParser::endOfGroup(string &sContent, int &nIndex, list<string>& lstBase
   return false;
 }
 
-bool JsonParser::nextGroupItem(string &sContent, int &nIndex, list<string>& lstBaseString) {
-  skipWhiteSpace(sContent, nIndex);
+bool JsonParser::nextGroupItem(string &content, int &index, list<string>& baseString) {
+  skipWhiteSpace(content, index);
 
-  if (',' == sContent[nIndex]) {
-    nIndex += 1;
+  if (',' == content[index]) {
+    index += 1;
 
     return true;
   }
@@ -244,54 +246,54 @@ bool JsonParser::nextGroupItem(string &sContent, int &nIndex, list<string>& lstB
   return false;
 }
 
-bool JsonParser::detectArray(string &sContent, int &nIndex, list<string>& lstBaseString)
+bool JsonParser::detectArray(string &content, int &index, list<string>& baseString)
 {
   while (true) {
-    skipWhiteSpace(sContent, nIndex);
+    skipWhiteSpace(content, index);
     
-    if (!detectArrayItem(sContent, nIndex, lstBaseString)) return false;
+    if (!detectArrayItem(content, index, baseString)) return false;
 
-    if (!nextArrayItem(sContent, nIndex, lstBaseString)) {
+    if (!nextArrayItem(content, index, baseString)) {
       // If there is no anymore item and there is no end of array charactor ']' => incorrect JSON format
-      if (!endOfArray(sContent, nIndex, lstBaseString)) return false;
+      if (!endOfArray(content, index, baseString)) return false;
 
       break;
     }
   }
 
-  nIndex += 1;
+  index += 1;
 
   return true;
 }
 
-bool JsonParser::detectArrayItem(string &sContent, int &nIndex, list<string>& lstBaseString) {
-  int nStartIndex = nIndex;
-  switch (sContent[nIndex]) {
+bool JsonParser::detectArrayItem(string &content, int &index, list<string>& baseString) {
+  int nStartIndex = index;
+  switch (content[index]) {
     case '{':
-      lstBaseString.push_back(sContent.substr(nStartIndex, nIndex - nStartIndex + 1));
-      nIndex += 1;
-      return detectGroup(sContent, nIndex, lstBaseString);
+      baseString.push_back(content.substr(nStartIndex, index - nStartIndex + 1));
+      index += 1;
+      return detectGroup(content, index, baseString);
       break;
     case '[':
-      lstBaseString.push_back(sContent.substr(nStartIndex, nIndex - nStartIndex + 1));
-      nIndex += 1;
-      return detectArray(sContent, nIndex, lstBaseString);
+      baseString.push_back(content.substr(nStartIndex, index - nStartIndex + 1));
+      index += 1;
+      return detectArray(content, index, baseString);
       break;
     default:
-      bool b = detectSingle(sContent, nIndex, lstBaseString);
-      lstBaseString.push_back(sContent.substr(nStartIndex, nIndex - nStartIndex));
+      bool b = detectSingle(content, index, baseString);
+      baseString.push_back(content.substr(nStartIndex, index - nStartIndex));
       return b;
       break;
   }
 }
 
-bool JsonParser::endOfArray(string &sContent, int &nIndex, list<string>& lstBaseString)
+bool JsonParser::endOfArray(string &content, int &index, list<string>& baseString)
 {
-  int nStartIndex = nIndex;
-  skipWhiteSpace(sContent, nIndex);
+  int nStartIndex = index;
+  skipWhiteSpace(content, index);
 
-  if (']' == sContent[nIndex]) {
-    lstBaseString.push_back(sContent.substr(nStartIndex, nIndex - nStartIndex + 1));
+  if (']' == content[index]) {
+    baseString.push_back(content.substr(nStartIndex, index - nStartIndex + 1));
 
     return true;
   }
@@ -299,12 +301,12 @@ bool JsonParser::endOfArray(string &sContent, int &nIndex, list<string>& lstBase
   return false;
 }
 
-bool JsonParser::nextArrayItem(string &sContent, int &nIndex, list<string>& lstBaseString)
+bool JsonParser::nextArrayItem(string &content, int &index, list<string>& baseString)
 {
-  skipWhiteSpace(sContent, nIndex);
+  skipWhiteSpace(content, index);
 
-  if (',' == sContent[nIndex]) {
-    nIndex += 1;
+  if (',' == content[index]) {
+    index += 1;
 
     return true;
   }
@@ -312,21 +314,21 @@ bool JsonParser::nextArrayItem(string &sContent, int &nIndex, list<string>& lstB
   return false;
 }
 
-bool JsonParser::detectSingle(string &sContent, int &nIndex, list<string>& lstBaseString)
+bool JsonParser::detectSingle(string &content, int &index, list<string>& baseString)
 {
-  switch (sContent[nIndex]) {
+  switch (content[index]) {
     case '"':
-      nIndex += 1;
-      if (!detectStringValue(sContent, nIndex)) return false;
+      index += 1;
+      if (!detectStringValue(content, index)) return false;
 
-      nIndex += 1;
+      index += 1;
       return true;
       break;
     case 't':
     case 'f':
-      if (!detectBoolValue(sContent, nIndex)) return false;
+      if (!detectBoolValue(content, index)) return false;
 
-      nIndex += 1;
+      index += 1;
       return true;
       break;
     case '0':
@@ -339,7 +341,7 @@ bool JsonParser::detectSingle(string &sContent, int &nIndex, list<string>& lstBa
     case '7':
     case '8':
     case '9':
-      detectNumberValue(sContent, nIndex);
+      detectNumberValue(content, index);
       return true;
       break;
     default:
@@ -350,82 +352,86 @@ bool JsonParser::detectSingle(string &sContent, int &nIndex, list<string>& lstBa
   return false;
 }
 
-bool JsonParser::detectStringValue(string& sContent, int &nIndex)
+bool JsonParser::detectStringValue(string& content, int &index)
 {
-  int nLen = sContent.length() - 1;
+  int nLen = content.length() - 1;
 
-  while (nIndex < nLen && '\n' != sContent[nIndex] && !('"' == sContent[nIndex] && '\\' != sContent[nIndex - 1])) {
-    nIndex += 1;
+  while (index < nLen && '\n' != content[index] && !('"' == content[index] && '\\' != content[index - 1])) {
+    index += 1;
   }
 
-  if ('\n' == sContent[nIndex]) return false;
-  if (nIndex == nLen) return false;
+  if ('\n' == content[index]) return false;
+  if (index == nLen) return false;
 
   return true;
 }
 
-bool JsonParser::detectBoolValue(string &sContent, int &nIndex)
+bool JsonParser::detectBoolValue(string &content, int &index)
 {
-  if ('t' == sContent[nIndex]) {
-    nIndex += 1;
-    if ('r' != sContent[nIndex]) return false;
+  if ('t' == content[index]) {
+    index += 1;
+    if ('r' != content[index]) return false;
 
-    nIndex += 1;
-    if ('u' != sContent[nIndex]) return false;
+    index += 1;
+    if ('u' != content[index]) return false;
 
-    nIndex += 1;
-    if ('e' != sContent[nIndex]) return false;
+    index += 1;
+    if ('e' != content[index]) return false;
   } else {
-    nIndex += 1;
-    if ('a' != sContent[nIndex]) return false;
+    index += 1;
+    if ('a' != content[index]) return false;
 
-    nIndex += 1;
-    if ('l' != sContent[nIndex]) return false;
+    index += 1;
+    if ('l' != content[index]) return false;
 
-    nIndex += 1;
-    if ('s' != sContent[nIndex]) return false;
+    index += 1;
+    if ('s' != content[index]) return false;
 
-    nIndex += 1;
-    if ('e' != sContent[nIndex]) return false;
+    index += 1;
+    if ('e' != content[index]) return false;
   }
 
   return true;
 }
 
-void JsonParser::detectNumberValue(string &sContent, int &nIndex)
+void JsonParser::detectNumberValue(string &content, int &index)
 {
-  if ('0' == sContent[nIndex]) {
-    nIndex += 1;
+  if ('0' == content[index]) {
+    index += 1;
   } else {
-    while (isdigit(sContent[nIndex])) {
-      nIndex += 1;
+    while (isdigit(content[index])) {
+      index += 1;
     }
 
-    if ('.' == sContent[nIndex]) {
-      nIndex += 1;
+    if ('.' == content[index]) {
+      index += 1;
 
-      while (isdigit(sContent[nIndex])) {
-        nIndex += 1;
+      while (isdigit(content[index])) {
+        index += 1;
       }
     }
   }
 }
 
-void JsonParser::printError(const string &sContent, int nIndex)
+void JsonParser::printError(const string &content, int index)
 {
-  cout << "SyntaxError: Unexpected token " << sContent[nIndex] << " in JSON at position " << nIndex << endl;
+  m_sErrorMessage = "SyntaxError: Unexpected token ";
+  m_sErrorMessage += content[index];
+  m_sErrorMessage += " in JSON at position ";
+  m_sErrorMessage += to_string(index + 1);
+  cout << m_sErrorMessage << endl;
 }
 
-void JsonParser::skipWhiteSpace(const string &sContent, int &nIndex)
+void JsonParser::skipWhiteSpace(const string &content, int &index)
 {
-  int nLen = sContent.length();
-  while (nIndex < nLen) {
-    switch (sContent[nIndex]) {
+  int nLen = content.length();
+  while (index < nLen) {
+    switch (content[index]) {
       case ' ':
       case '\t':
       case '\n':
       case '\r':
-        nIndex += 1;
+        index += 1;
         break;
       default:
         return;
