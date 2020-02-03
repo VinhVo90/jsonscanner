@@ -1,0 +1,50 @@
+communication
+	sender:SEND
+	recipient:RECV
+	referenceId:201904101234567890
+	keys
+		keysItem:ALGETA
+	keys
+		keysItem:TEST
+	message
+		name:BAPLIE
+		version:D
+		release:95B
+		agency:SMDG
+payload
+	quiz
+		sports
+			sportsItem
+				question:Which one is correct team name in NBA?
+				answer:Huston Rocket
+				options
+					optionsItem:New York Bulls
+				options
+					optionsItem:Los Angeles Kings
+				options
+					optionsItem:Golden State Warriros
+				options
+					optionsItem:Huston Rocket
+		maths
+			mathsItem
+				question:5 + 7 = ?
+				answer:12
+				options
+					optionsItem:10
+				options
+					optionsItem:11
+				options
+					optionsItem:12
+				options
+					optionsItem:13
+			mathsItem
+				question:12 - 8 = ?
+				answer:4
+				options
+					optionsItem:1
+				options
+					optionsItem:2
+				options
+					optionsItem:3
+				options
+					optionsItem:4

@@ -8,6 +8,8 @@ using namespace std;
 
 // doc_info format => doctype/OTPID/DTPID/msgtype/ref_no
 void write_jsi(string biz_file_path, char* doc_info, string error_message) {
+  if (!doc_info) return;
+  
 	char jsi_path[256] = { 0 };
 	sprintf(jsi_path, "%s.jsi\0", biz_file_path.c_str());
 	FILE* fp = fopen(jsi_path, "w");

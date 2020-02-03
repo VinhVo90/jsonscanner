@@ -1,0 +1,55 @@
+{
+  "communication": {
+		"sender": "SEND",
+		"recipient": "RECV",
+		"message": {
+			"name": "BAPLIE",
+			"version": "D",
+			"release": "95B",
+			"agency": "SMDG"
+		},
+		"referenceId": "201904101234567890",
+		"keys": [
+			"ALGETA",
+			"TEST"
+		]
+	},
+	"payload": {
+		"quiz": {
+			"sports": [
+				{
+					"question": "Which one is correct team name in NBA?",
+					"options": [
+						"New York Bulls",
+						"Los Angeles Kings",
+						"Golden State Warriros",
+						"Huston Rocket"
+					],
+					"answer": "Huston Rocket"
+				}
+			],
+			"maths": [
+				{
+					"question": "5 + 7 = ?",
+					"options": [
+						"10",
+						"11",
+						"12",
+						"13"
+					],
+					"answer": "12"
+				},
+				{
+					"question": "12 - 8 = ?",
+					"options": [
+						"1",
+						"2",
+						"3",
+						"4"
+					],
+					"answer": "4"
+				}
+			]
+		}
+	}
+}

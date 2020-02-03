@@ -1,13 +1,7 @@
 
-run\.bat
-
 a\.exe
 
-compile\.sh
-
 jsonparser\.exe
-
-sample/
 
 \.vscode/
 
@@ -16,3 +10,5 @@ jsonparser\.zip
 jsonscanner\.exe
 
 lib\.zip
+
+jsonscanner.rar
